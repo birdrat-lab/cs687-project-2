@@ -119,10 +119,6 @@ sensor will be the given value"
                 (position sensor *sensors*)))
 
 
-
-
-
-
 ;;;;;; Some utility functions for normalizing tables, 
 ;;;;;; creating particles, and counting
 ;;;;;; particles at the end.
@@ -138,6 +134,7 @@ sensor will be the given value"
 
 (defmacro gather (times &rest body)
   "Format:  (gather num-times -body-)
+
 Calls the -body- code num-times times.  Each time the value of the last expression
 in -body- is appended to a list.  The full list is then returned."
   (let ((x (gensym)) (y (gensym)))
@@ -146,10 +143,6 @@ in -body- is appended to a list.  The full list is then returned."
 (defun counts (distribution)
   "Counts the number of times a state particle appears in the distribution"
   (mapcar (lambda (state) (count state distribution)) *states*))
-
-
-
-
 
 
 ;;;;; Table-based Bayes Filter.  The function BAYES-FILTER takes a collection of
@@ -161,29 +154,20 @@ in -body- is appended to a list.  The full list is then returned."
   "Given a new state and an action, returns a list of probabilities, one
 per old state, of the probability of transitioning to the new state from
 that old state given the action"
-(let ((state-probabilities (make-array 5)))
- ; (loop for i from 0 to 5 do
-    (loop for j from 0 to 4 do
+  (let ((achieve-new-state-probs))
+    (loop for old-state in (states)
+	  do
+	     (push (action-probability new-state old-state action) achieve-new-state-probs))
+    (reverse achieve-new-state-probs)))
 
-    (setf (aref state-probabilities j) (action-probability new-state j action))
-    
-    )
-  state-probabilities)
-  )
 (defun sensor-probabilities (sensor)
   "Given a sensor value, returns a list of probabilities, one
 per state, of the probability of receiving that sensor value given the state"
-
-(let ((sensor-array-probabilities (make-array 5)))
- ; (loop for i from 0 to 5 do
-    (loop for j from 0 to 4 do
-
-    (setf (aref sensor-array-probabilities j) (sensor-probability sensor j))
-    
-    )
-  sensor-array-probabilities)
-  )
-
+  (let ((prob-in-state))
+    (loop for state in (states)
+	  do     
+	     (push (sensor-probability sensor state) prob-in-state))
+    (reverse prob-in-state)))
      
 
 (defun bayes-filter (action sensor previous-beliefs)
@@ -192,42 +176,18 @@ result, returns a  new belief table about what our new states
 might possibly be.  Belief tables are simply lists of the form 
 '(p1 p2 p3 p4 p5 ...) where p1 is the probability for the first 
 state, p2 is the probability for the second state, and so on."
-
-
-(let ((belief-table (make-list 5 :initial-element 0)))
- 
- (print belief-table)
-
-  (loop for i from 0 to 4 do
-    (let ((sum 0))
-     (loop for j from 0 to 4 do
-
-      (setf sum (+ sum (* (nth j previous-beliefs) (aref (action-probabilities i action) j))))
-      )
-      
-      (setf (nth i belief-table) (* sum (aref (sensor-probabilities sensor) i))
-     )
-
-    )
-     
-)
-(normalize belief-table)
-) 
-
-)
-
-
-
-
-
-
-
+  (let ((belief-table))
+    (loop for state in (states)
+	  do
+	     (push (reduce '+ (mapcar '* previous-beliefs (action-probabilities state action))) belief-table))
+    (normalize (mapcar '* (reverse belief-table) (sensor-probabilities sensor)))))
+	       
+	
 ;;;;; The particle filter.  The function PARTICLE-FILTER is similar to BAYES-FILTER
 ;;;;; except that its collections of beliefs take the form of BAGS of STATES.  The same
 ;;;;; state may repeatedly appear many times in this bag.  The number of times a state is
 ;;;;; is in the bag basically approximates the probability that we believe we're likely in
 ;;;;; that state.
-
 
 
 
