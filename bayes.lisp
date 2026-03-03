@@ -79,7 +79,7 @@
 ;;;
 ;;; We can see that for state=2 in example 2, probability starts accruing with higher N where before there was nothing. With high enough N, I expect the particle filter and the bayesian filter results to overlap completely, up to floating point error.
 ;;;
-;;; To get these results, i.e. our answers for 1 and 2, uncomment the example model state and run the example-1-particle, example-2-bayes, etc., functions as usual.
+;;; To get these results, i.e. our answers for 1 and 2, uncomment the proper lines in the TOGGLE MODELS section, *recompile*, and then run the example-1-particle, example-2-bayes, etc., functions as usual.
 ;;;
 ;;; Part 3
 ;;;
@@ -149,29 +149,29 @@
 ;;;
 ;;; A sample output:
 ;;;
-;;; Probability mass on [3.144,4.589]
-;;;
-;;; 3.144 to 3.216: 0.00030003
-;;; 3.216 to 3.288: 0.00010001
-;;; 3.288 to 3.360: 0.00050005
-;;; 3.360 to 3.433: 0.00220022
-;;; 3.433 to 3.505: 0.00690069
-;;; 3.505 to 3.577: 0.01790179
-;;; 3.577 to 3.649: 0.04070407
-;;; 3.649 to 3.722: 0.06810681
-;;; 3.722 to 3.794: 0.104810484
-;;; 3.794 to 3.866: 0.13381338
-;;; 3.866 to 3.939: 0.1530153
-;;; 3.939 to 4.011: 0.1441144
-;;; 4.011 to 4.083: 0.12451245
-;;; 4.083 to 4.155: 0.09620962
-;;; 4.155 to 4.228: 0.05480548
-;;; 4.228 to 4.300: 0.03160316
-;;; 4.300 to 4.372: 0.01340134
-;;; 4.372 to 4.445: 0.00530053
-;;; 4.445 to 4.517: 0.00120012
-;;; 4.517 to 4.589: 0.00050005
-;;;
+;;; Probability mass on [2.106,5.309]
+
+;;; 2.106 to 2.266: 0.00010001
+;;; 2.266 to 2.426: 0.00020002
+;;; 2.426 to 2.586: 0.00050005
+;;; 2.586 to 2.746: 0.00240024
+;;; 2.746 to 2.906: 0.0041004103
+;;; 2.906 to 3.067: 0.00950095
+;;; 3.067 to 3.227: 0.0220022
+;;; 3.227 to 3.387: 0.04530453
+;;; 3.387 to 3.547: 0.08440844
+;;; 3.547 to 3.707: 0.11941194
+;;; 3.707 to 3.867: 0.16451645
+;;; 3.867 to 4.027: 0.16681668
+;;; 4.027 to 4.188: 0.14731473
+;;; 4.188 to 4.348: 0.11011101
+;;; 4.348 to 4.508: 0.06640664
+;;; 4.508 to 4.668: 0.03520352
+;;; 4.668 to 4.828: 0.01410141
+;;; 4.828 to 4.988: 0.00560056
+;;; 4.988 to 5.148: 0.00160016
+;;; 5.148 to 5.309: 0.00040004
+
 ;;; We expect the robot to be in position ~ (3.14+5*0.157) at the end, or around 3.927. The distribution
 ;;; consistently peaks ~ 3.9, which means our model passes the first test.
 ;;;
@@ -180,68 +180,144 @@
 ;;; with the exception of a sensor reading of pi. In a way, you get the *most* information for
 ;;; measurements around pi.
 ;;;
-;;; We start by initializing an initial belief concentrated on [2 pi/3 , 3 pi/4] and [pi/2 pi/3], but
+;;; We start by initializing an initial belief concentrated on [pi + 2 pi/3 , pi + 3 pi/4] and [pi/4 pi/3], i.e. points symmetric about the wall, but
 ;;; run the *same* action/sensor sequence as in test 1. i.e. It is likely the robot's initial belief
 ;;; is quite flawed. We see if 5 (forward backward) sensor signals are enough to correct this flawed initial belief.
 ;;;
 ;;; Sample output:
 ;;; 
-;;; 3.133 to 3.206: 0.00010001
-;;; 3.206 to 3.279: 0.00020002
-;;; 3.279 to 3.352: 0.00110011
-;;; 3.352 to 3.425: 0.0033003301
-;;; 3.425 to 3.498: 0.010001
-;;; 3.498 to 3.571: 0.02370237
-;;; 3.571 to 3.644: 0.046304632
-;;; 3.644 to 3.717: 0.07560756
-;;; 3.717 to 3.790: 0.1140114
-;;; 3.790 to 3.864: 0.14571457
-;;; 3.864 to 3.937: 0.15541553
-;;; 3.937 to 4.010: 0.1491149
-;;; 4.010 to 4.083: 0.10771077
-;;; 4.083 to 4.156: 0.08320832
-;;; 4.156 to 4.229: 0.04460446
-;;; 4.229 to 4.302: 0.02460246
-;;; 4.302 to 4.375: 0.00990099
-;;; 4.375 to 4.448: 0.00370037
-;;; 4.448 to 4.522: 0.0015001501
-;;; 4.522 to 4.595: 0.00020002
-;;;
-;;; with 5 (foward backward) pairs, this distribution is nearly identical to the test-1 distribution.
-;;; What if we restrict this to just 1 (forward backward) pair (commenting out the larger action-sequence)?
-;;;
-;;; Sample output:
-;;;
-;;; Probability mass on [1.602,3.221]
+;;; Probability mass on [0.433,5.535]
 
-;;; 1.602 to 1.683: 0.000100120145
-;;; 1.683 to 1.764: 0.0
-;;; 1.764 to 1.845: 0.0
-;;; 1.845 to 1.926: 0.0006007209
-;;; 1.926 to 2.007: 0.002803364
-;;; 2.007 to 2.088: 0.0073087704
-;;; 2.088 to 2.169: 0.019122947
-;;; 2.169 to 2.250: 0.045554664
-;;; 2.250 to 2.331: 0.075390466
-;;; 2.331 to 2.412: 0.10402483
-;;; 2.412 to 2.493: 0.12174609
-;;; 2.493 to 2.574: 0.1222467
-;;; 2.574 to 2.654: 0.13035643
-;;; 2.654 to 2.735: 0.13576292
-;;; 2.735 to 2.816: 0.09911894
-;;; 2.816 to 2.897: 0.06938326
-;;; 2.897 to 2.978: 0.044353224
-;;; 2.978 to 3.059: 0.0155186225
-;;; 3.059 to 3.140: 0.0066079297
-;;; 3.140 to 3.221: 0.0
-
-;;; The distribution is now closer to (pi), but not all the way collapsed. Notably, all the probability mass lies
-;;; outside the original intervals off of just 1 (forward backward) pair . This is probably due to the  weight
-;;; function being tightly tied to the sensor measurement - the standard deviation on a sensor measurement is
-;;; roughly 0.314 radians, any state outside that range is likely to be heavily discounted during resampled.
+;;; 0.433 to 0.688: 0.00050005
+;;; 0.688 to 0.943: 0.00190019
+;;; 0.943 to 1.199: 0.01760176
+;;; 1.199 to 1.454: 0.07310731
+;;; 1.454 to 1.709: 0.1689169
+;;; 1.709 to 1.964: 0.26222622
+;;; 1.964 to 2.219: 0.23932393
+;;; 2.219 to 2.474: 0.1470147
+;;; 2.474 to 2.729: 0.05980598
+;;; 2.729 to 2.984: 0.02110211
+;;; 2.984 to 3.239: 0.00610061
+;;; 3.239 to 3.494: 0.00160016
+;;; 3.494 to 3.750: 0.00020002
+;;; 3.750 to 4.005: 0.00010001
+;;; 4.005 to 4.260: 0.0
+;;; 4.260 to 4.515: 0.0
+;;; 4.515 to 4.770: 0.0
+;;; 4.770 to 5.025: 0.00010001
+;;; 5.025 to 5.280: 0.00040004
+;;; 5.280 to 5.535: 0.0
 ;;;
-;;; What if we had a sensor sequence consistent with the intervals [2 pi/3 , 3 pi/4] and [pi/2 pi/3], but an
-;;; initial belief centered around pi? That is what our third example focuses on. 
+;;; with 5 (foward backward) pairs, this distribution collapses peaks near 5 pi/8.
+;;;
+;;; Notably, nearly all he probability mass lies outside the original intervals now, that is the sensor measurements mostly destroyed
+;;; the initial belief. 
+;;;
+;;; Third test: What if we had a sensor sequence consistent with the intervals [pi + 2 pi/3 , pi + 3 pi/4] and [pi/4, pi/3], and an
+;;; initial belief centered around it? Do the sensor readings preserve this structture?
+;;; With an initial sensor reading of 7 pi/24, i.e. could be in the middle of either interval, move forward and backward twice.
+;;;
+;;; 0.246 to 0.437: 0.0018001801
+;;; 0.437 to 0.628: 0.01160116
+;;; 0.628 to 0.819: 0.04930493
+;;; 0.819 to 1.010: 0.12511252
+;;; 1.010 to 1.200: 0.20522052
+;;; 1.200 to 1.391: 0.23032303
+;;; 1.391 to 1.582: 0.15161516
+;;; 1.582 to 1.773: 0.06710671
+;;; 1.773 to 1.964: 0.01890189
+;;; 1.964 to 2.155: 0.00270027
+;;; 2.155 to 2.346: 0.00030003
+;;; 2.346 to 2.537: 0.0
+;;; 2.537 to 2.728: 0.0
+;;; 2.728 to 2.919: 0.0
+;;; 2.919 to 3.110: 0.0
+;;; 3.110 to 3.301: 0.0
+;;; 3.301 to 3.492: 0.0
+;;; 3.492 to 3.682: 0.0
+;;; 3.682 to 3.873: 0.0
+;;; 3.873 to 4.064: 0.0
+;;; 4.064 to 4.255: 0.0
+;;; 4.255 to 4.446: 0.0
+;;; 4.446 to 4.637: 0.00010001
+;;; 4.637 to 4.828: 0.00060006
+;;; 4.828 to 5.019: 0.0041004103
+;;; 5.019 to 5.210: 0.01350135
+;;; 5.210 to 5.401: 0.03850385
+;;; 5.401 to 5.592: 0.0510051
+;;; 5.592 to 5.783: 0.02520252
+;;; 5.783 to 5.974: 0.0030003001
+;;;
+;;; We see two things: one the distribution closer to 2pi is collecting near the wall! This is an interesting asymmetry.
+;;; This is because 2 forwards and 2 backwards produces a net forward motion, but the particles near the wall cannot go
+;;; through it! Thus the higher center drifts. The distribution closer to zero moves closer to the center slightly, but
+;;; has more centered tails around its peak.
+;;;
+;;;
+;;; Fourth test: Let's try to simulate steady state behavior! Let's assume an initial  belief uniformly distributed across
+;;; the disc. Let's say the robot tries driving forward 4 times and backwards 5 times in sucession, something like 100 times,
+;;; so its net mean motion is zero.
+;;; We'll pick an initial sensor value of pi/2 i.e. the one that gives us the least information (no wall, no distribution overlap like you get near pi)
+;;; Instead of hardcoding the sensor simulation, sample the action probabilities to get a new position, and get a new sensor reading with error as well.
+;;; For each action, we'll get a new randomized sample. This test is the closest to simulating a real robot trapped in our ring. 
+;;; I'm not sure what the steady state solution will be. I expect that it can't learn anything.
+
+;;; Sample Output:
+
+;;; 5.049 to 5.074: 0.00010001
+;;; 5.074 to 5.098: 0.0
+;;; 5.098 to 5.123: 0.00010001
+;;; 5.123 to 5.148: 0.00020002
+;;; 5.148 to 5.172: 0.00050005
+;;; 5.172 to 5.197: 0.00010001
+;;; 5.197 to 5.222: 0.00060006
+;;; 5.222 to 5.247: 0.00090009003
+;;; 5.247 to 5.271: 0.00090009003
+;;; 5.271 to 5.296: 0.0015001501
+;;; 5.296 to 5.321: 0.0018001801
+;;; 5.321 to 5.345: 0.00270027
+;;; 5.345 to 5.370: 0.00370037
+;;; 5.370 to 5.395: 0.00460046
+;;; 5.395 to 5.419: 0.00570057
+;;; 5.419 to 5.444: 0.00570057
+;;; 5.444 to 5.469: 0.00740074
+;;; 5.469 to 5.493: 0.00850085
+;;; 5.493 to 5.518: 0.0090009
+;;; 5.518 to 5.543: 0.01430143
+;;; 5.543 to 5.567: 0.01570157
+;;; 5.567 to 5.592: 0.01420142
+;;; 5.592 to 5.617: 0.01940194
+;;; 5.617 to 5.641: 0.0190019
+;;; 5.641 to 5.666: 0.02160216
+;;; 5.666 to 5.691: 0.02350235
+;;; 5.691 to 5.715: 0.02720272
+;;; 5.715 to 5.740: 0.027702771
+;;; 5.740 to 5.765: 0.02810281
+;;; 5.765 to 5.790: 0.0270027
+;;; 5.790 to 5.814: 0.02790279
+;;; 5.814 to 5.839: 0.03060306
+;;; 5.839 to 5.864: 0.03080308
+;;; 5.864 to 5.888: 0.02960296
+;;; 5.888 to 5.913: 0.02850285
+;;; 5.913 to 5.938: 0.03190319
+;;; 5.938 to 5.962: 0.03180318
+;;; 5.962 to 5.987: 0.034103412
+;;; 5.987 to 6.012: 0.03480348
+;;; 6.012 to 6.036: 0.03480348
+;;; 6.036 to 6.061: 0.03330333
+;;; 6.061 to 6.086: 0.03820382
+;;; 6.086 to 6.110: 0.03990399
+;;; 6.110 to 6.135: 0.036303632
+;;; 6.135 to 6.160: 0.03780378
+;;; 6.160 to 6.184: 0.04110411
+;;; 6.184 to 6.209: 0.04470447
+;;; 6.209 to 6.234: 0.03750375
+;;; 6.234 to 6.258: 0.04040404
+;;; 6.258 to 6.283: 0.04420442
+
+;;; We clearly have some symmetry breaking! That we get some collection near the wall on 2pi makes sense - particles that can bounce off the wall will tend to stay/stick there.
+;;; What is not immediately clear is why our lower theta particles died out. We can understand this by thinking about how movement breaks the symmetry. For a particle at theta < pi - k, a forward motion of size k moves you *further* from the wall. For a particle at theta > pi, any forward motion moves it *closer* to the wall, i.e. distance decreases. Both actions *break* the distance symmetry then, which is why our distribution collapses to one side.
 
 
 ;;;;; **********
@@ -423,7 +499,7 @@ in -body- is appended to a list.  The full list is then returned."
 ;;; When weighing a particle, it's likelihood is proportional to a gaussian
 ;;; centered around the sensor reading, i.e. two peaks at theta and 2pi-theta. 
 
-(defparameter *sensor-error* (/ *2pi* 20))
+(defparameter *sensor-error* (* 1.5 *forward-mean-angle*))
 
 (defun distance-from-wall (state)
   (min state (- *2pi* state)))
@@ -556,6 +632,8 @@ given the probability distribution P(new-state | old-state, action)."
 ;;; TOGGLE BETWEEN MODELS HERE
 ;;; *************************
 ;;;
+;;; RECOMPILE AFTER TOGGLING
+;;;
 ;;; The old model has discretized states/sensor readings.
 ;;; That does not play well with the new continuous regime.
 ;;; We can abstract away *all* the changes to these two wrapper
@@ -642,17 +720,24 @@ particle is simply a state."
 
 ;;; NEW TEST FUNCTIONS
 
-(defun sensor-vals-example-1 (action-sequence)
-  "Give average sensor readings for the action sequence outlined in example-1-continuous"
+(defun average-sensor-reading (action-sequence theta-start)
   (let ((bag)
-	(current-theta pi))
+	(theta-curr theta-start))
     (loop for action in action-sequence
 	  do
-	     (if (eq action :forward) (setf current-theta (+ current-theta *forward-mean-angle*))
-		 (setf current-theta (+ current-theta *backward-mean-angle*)))
-	     (push (distance-from-wall current-theta) bag))
+	     (if (eq action :forward) (setf theta-curr (handle-collisions (+ theta-curr *forward-mean-angle*)))
+		 (setf theta-curr (handle-collisions (+ theta-curr *backward-mean-angle*))))
+	     (push (distance-from-wall theta-curr) bag))
     (reverse bag)))
 
+(defun sensor-vals-example-1 (action-sequence)
+  "Give average sensor readings for the action sequence outlined in example-1-continuous, starting for a robot believed to be around theta=pi"
+  (average-sensor-reading action-sequence pi))
+
+(defun sensor-vals-example-3 (action-sequence)
+  "Give average sensor readings for the action sequence outlined in example-3-continuous, i.e. a robot that begins with a strong belief it's at
+   either plus or minus 7 pi/24"
+  (average-sensor-reading action-sequence (* (/ 7.0 24.0) pi)))
 
 (defun example-1-continuous ()
   "First example calculation, simulates a robot that starts opposite the wall, near theta=pi"
@@ -670,21 +755,48 @@ particle is simply a state."
 (defun example-2-continuous ()
   "Second example calculation, simulates a robot with a mistaken initial belief."
   (let* ((particles (append
-		     (generate-particles-on-interval (/ (* 2 pi) 3) (/ (* 3 pi) 4) 5000)
+ 		     (generate-particles-on-interval (+ pi (/ (* 2 pi) 3)) (+ pi (/ (* 3 pi) 4)) 5000)
 		     (generate-particles-on-interval (/ pi 4) (/ pi 3) 5000)))
-	 ;;;
-	;;; SAME action/senor sequence, much different initial belief	    
-;;;	 (action-sequence (list :forward :backward :forward :backward 
-;;;			       :forward :backward :forward :backward
-;;;			       :forward :backward))
-	 (action-sequence (list :forward))
+	;;; SAME action/sensor sequence, much different initial belief	    
+	 (action-sequence (list :forward :backward :forward :backward 
+			       :forward :backward :forward :backward
+				:forward :backward))
 	 (sensor-sequence (sensor-vals-example-1 action-sequence)))
     (loop for action in action-sequence
 	  for sensor in sensor-sequence
 	  do
 	     (setf particles (particle-filter action sensor particles)))
     (apply #'print-hist (make-hist particles (reduce #'min particles) (reduce #'max particles) 20.0))))
-    
+
+(defun example-3-continuous ()
+  "Third example calculation, same initial belief as example two, action/sensor sequences built to confirm this initial belief"
+    (let* ((particles (append
+		     (generate-particles-on-interval (+ pi (/ (* 2 pi) 3)) (+ pi (/ (* 3 pi) 4)) 5000)
+		     (generate-particles-on-interval (/ pi 4) (/ pi 3) 5000)))
+	   (action-sequence (list :forward :backward :forward :backward))
+	   (sensor-sequence (sensor-vals-example-3 action-sequence)))
+    (loop for action in action-sequence
+	  for sensor in sensor-sequence
+	  do
+	     (setf particles (particle-filter action sensor particles)))
+    (apply #'print-hist (make-hist particles (reduce #'min particles) (reduce #'max particles) 30.0))))
+
+(defun example-4-continuous ()
+  (let* ((particles (generate-particles-on-interval 0 *2pi* 10000))
+	 (action-sequence)
+	 (theta (/ pi 2)))
+    (dotimes (n 100)
+      (dotimes (i 4)
+	(push :forward action-sequence))
+      (dotimes (j 5)
+	push :backward action-sequence))
+    (loop for action in action-sequence
+	  do
+	     (setf theta (action-result theta action))
+	     (setf particles (particle-filter action (sensor-result theta) particles)))
+    (apply #'print-hist (make-hist particles (reduce #'min particles) (reduce #'max particles) 50.0))))
+
+
 ;;;; Example 1 : move forward through the environment,
 ;;;; then back to where you started.  You don't know where
 ;;;; you started.  Where are you likely to be?
