@@ -169,19 +169,14 @@ per state, of the probability of receiving that sensor value given the state"
 	     (push (sensor-probability sensor state) prob-in-state))
     (reverse prob-in-state)))
      
-
 (defun bayes-filter (action sensor previous-beliefs)
-        "Given a previous belief table, an action, and a sensor 
-result, returns a  new belief table about what our new states 
-might possibly be.  Belief tables are simply lists of the form 
-'(p1 p2 p3 p4 p5 ...) where p1 is the probability for the first 
-state, p2 is the probability for the second state, and so on."
+  "Given a previous belief table, an action, and a sensor result, returns a new belief table about what our new states might possibly be. Belief tables are simply lists of the form '(p1 p2 p3 p4 p5 ...) where p1 is the probability for the first state, p2 is the probability for the second state, and so on."
   (let ((belief-table))
     (loop for state in (states)
 	  do
 	     (push (reduce '+ (mapcar '* previous-beliefs (action-probabilities state action))) belief-table))
     (normalize (mapcar '* (reverse belief-table) (sensor-probabilities sensor)))))
-	       
+
 	
 ;;;;; The particle filter.  The function PARTICLE-FILTER is similar to BAYES-FILTER
 ;;;;; except that its collections of beliefs take the form of BAGS of STATES.  The same
@@ -198,10 +193,15 @@ state, p2 is the probability for the second state, and so on."
 (defun sample-from-distribution (distribution)
   "Given a possibly non-normalized distribution, in the form of a list of probabilities,
 selects from the distribution randomly and returns the index of the selected element."
-
-;;; IMPLEMENT ME
-
-)
+  (let ((threshold (random (reduce '+ distribution)))
+	(sum 0.0)
+	(dist-last-index (- (length distribution) 1)))
+    (loop for weight in distribution
+	  for index from 0 to dist-last-index
+	  do
+	     (setf sum (+ sum weight))
+	     (cond ((>= sum threshold) (return index))
+		   ((= index dist-last-index) (return index))))))
 
 
 
@@ -217,12 +217,26 @@ forms a new distribution of elements.  Uses a Low-variance 'Stochastic Universal
 but a plain-old roulette wheel sampler or something else could have
 been used just as well.  The function -sample- provides a possible sample in the list, and the function -weight- provides the probability that it should be selected.  By default these are #'first and #'second, presuming that the provided distribution is
 of the form ((sample1 weight1) (sample2 weight2) ...)."
-
-;;; IMPLEMENT ME
-;;; Note: this is the most complex function.
-
-)
-
+  ; following the wikipedia pseudocode
+  (let* ((total-fitness (reduce '+ (mapcar weight samples-and-weights)))
+	 (num-samples (length samples-and-weights))
+	 (distance-between-pointers (/ total-fitness num-samples))
+	 (start (random distance-between-pointers))
+	 (pointers (loop for i from 0 to (- num-samples 1)
+			 collect (+ start (* i distance-between-pointers))))
+	 (bag)
+	 (fitness-sum 0.0)
+	 (point-index 0))
+    ; only summing throught the weights once, instead of a new time for each particle. 
+    (loop for s-and-w in samples-and-weights
+    	  do
+	     (setf fitness-sum (+ fitness-sum (funcall weight s-and-w)))
+	     (loop while (and (< point-index num-samples) (>= fitness-sum (elt pointers point-index)))
+		   do
+		      (push (funcall sample s-and-w) bag)
+		      (setf point-index (+ point-index 1))))
+    bag))
+	 
 
 
 ;; Here I grab a random new state selected from the distribution of old ones.
@@ -236,10 +250,12 @@ of the form ((sample1 weight1) (sample2 weight2) ...)."
 (defun select-from-action-probabilities (old-state action)
   "Given an old-state and an action, selects a new-state at random and returns it
 given the probability distribution P(new-state | old-state, action)."
-
-;;; IMPLEMENT ME
-
-)
+  (let ((probs)
+	(states (states)))
+    (loop for new-state in states
+	  do
+	     (push (action-probability new-state old-state action) probs))
+    (elt states (sample-from-distribution (reverse probs)))))
 
 
 ;; Now we just do the belief update.  Note that beliefs now are different than they
@@ -253,15 +269,10 @@ given the probability distribution P(new-state | old-state, action)."
 result, returns a  new belief table about what our new states 
 might possibly be.  Belief tables are lists of particles.  Each
 particle is simply a state."
-
-;;; IMPLEMENT ME
-
-)
-
-
-
-
-
+  (let* ((particles-from-action (mapcar #'(lambda (p) (select-from-action-probabilities p action)) previous-beliefs))
+	 (sensor-probs (sensor-probabilities sensor))
+	 (particle-weight-pairs (mapcar #'(lambda (p) (list p (elt sensor-probs p))) particles-from-action)))
+    (resample-distribution particle-weight-pairs)))
 
 
 ;;;; SOME TEST FUNCTIONS
