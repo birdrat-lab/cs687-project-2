@@ -25,6 +25,33 @@
 ;;;;;;; 4. Explore different situations in your new problem domain.
 
 
+;;;;;;; OUR EXAMPLE MODEL
+;;;;;;;
+;;;;;;; This simple model is discrete, to keep things simple -- but in fact
+;;;;;;; our particle filter should be able to be modified for a continuous
+;;;;;;; world fairly trivially. 
+;;;;;;;
+;;;;;;; In this model we have five rooms:  0 1 2 3 4
+;;;;;;; the rooms are organized in a torus (a loop).
+;;;;;;;
+;;;;;;; The robot can perform two actions:   :forward    and    :backward
+;;;;;;; The robot can sense two possible sensations in a room:   :even   and   :odd
+;;;;;;;
+;;;;;;; If a robot is in room x, and tries to go forward, with 1/2 probability
+;;;;;;; he will wind up in room x+1 and with 1/2 probability he will stay in room x
+;;;;;;;
+;;;;;;; If a robot is in an even room (0, 2, or 4) with 95% probability he will
+;;;;;;; sense ":even" and with 5% probability he will sense ":odd".  The opposite
+;;;;;;; occurs if he's in an odd room (1 or 3). 
+;;;;;;;
+;;;;;;; Hint: instead of directly accessing *action-model*, *sensor-model*, and *states*
+;;;;;;; in your code later on, you might use the states, action-probability, and
+;;;;;;; sensor-probability functions instead.  That way if you change your model
+;;;;;;; you just need to resubmit those three functions to
+
+
+
+
 ;;; Parts 1 & 2:
 ;;;
 ;;; we implemented the bayes and particle filters using the provided function. On the base example runs, we got the following results:
@@ -54,7 +81,7 @@
 ;;;
 ;;; To get these results, i.e. our answers for 1 and 2, uncomment the example model state and run the example-1-particle, example-2-bayes, etc., functions as usual.
 ;;;
-;;; Parts 3 & 4:
+;;; Part 3
 ;;;
 ;;; For a new problem domain, we chose to make a continuous problem setting for the particle filter.
 ;;; The goal was to extend the loop model from the discretized 5 rooms to allowing the robot to be
@@ -99,32 +126,123 @@
 ;;; resulting probability distribution will *not* be symmetric around the mean.
 ;;;
 ;;; Similarly for backwards, map any sample on (-k, 0) to (0,k). This will also introduce an asymmetry.
+;;;
+;;; The functions defining this model are outlined in the NEW MODEL section - the discrete loop is left
+;;; as is in the OLD MODEL section so results from Part 1 and 2 can be reproduced. The methods to toggle
+;;; between the discrete and continue model are found just above the particle filter method.
+;;;
+;;; Part 4:
+;;;
+;;; We fix N=10000.
+;;;
+;;; The first test we implemented was for an initial belief concentrated on the interval [pi-0.2, pi+0.2],
+;;; simulating a robot driving taking the forward and backward action 5 times in succession.
+;;;
+;;; This interval is just about as far as we can get from the wall, so this test is mostly a sanity
+;;; check that the model is correct and works well with the filter. 
+;;;
+;;; One (forward, backwards) pair moves the robot ~0.157 radians, since the average forward movement
+;;; slightly exceeds the average backwards movement. We placed the sensor readings at the average
+;;; movement from a forward/backward action respectively.
+;;;
+;;; Run this test with the command (example-1-continuous), with the proper model active.
+;;;
+;;; A sample output:
+;;;
+;;; Probability mass on [3.144,4.589]
+;;;
+;;; 3.144 to 3.216: 0.00030003
+;;; 3.216 to 3.288: 0.00010001
+;;; 3.288 to 3.360: 0.00050005
+;;; 3.360 to 3.433: 0.00220022
+;;; 3.433 to 3.505: 0.00690069
+;;; 3.505 to 3.577: 0.01790179
+;;; 3.577 to 3.649: 0.04070407
+;;; 3.649 to 3.722: 0.06810681
+;;; 3.722 to 3.794: 0.104810484
+;;; 3.794 to 3.866: 0.13381338
+;;; 3.866 to 3.939: 0.1530153
+;;; 3.939 to 4.011: 0.1441144
+;;; 4.011 to 4.083: 0.12451245
+;;; 4.083 to 4.155: 0.09620962
+;;; 4.155 to 4.228: 0.05480548
+;;; 4.228 to 4.300: 0.03160316
+;;; 4.300 to 4.372: 0.01340134
+;;; 4.372 to 4.445: 0.00530053
+;;; 4.445 to 4.517: 0.00120012
+;;; 4.517 to 4.589: 0.00050005
+;;;
+;;; We expect the robot to be in position ~ (3.14+5*0.157) at the end, or around 3.927. The distribution
+;;; consistently peaks ~ 3.9, which means our model passes the first test.
+;;;
+;;; The second test is implemented to show how powerful sensor signals around (pi) are. Even if noise
+;;; in the sensor vanished, a given measurement would still leave two candidate states on the loop,
+;;; with the exception of a sensor reading of pi. In a way, you get the *most* information for
+;;; measurements around pi.
+;;;
+;;; We start by initializing an initial belief concentrated on [2 pi/3 , 3 pi/4] and [pi/2 pi/3], but
+;;; run the *same* action/sensor sequence as in test 1. i.e. It is likely the robot's initial belief
+;;; is quite flawed. We see if 5 (forward backward) sensor signals are enough to correct this flawed initial belief.
+;;;
+;;; Sample output:
+;;; 
+;;; 3.133 to 3.206: 0.00010001
+;;; 3.206 to 3.279: 0.00020002
+;;; 3.279 to 3.352: 0.00110011
+;;; 3.352 to 3.425: 0.0033003301
+;;; 3.425 to 3.498: 0.010001
+;;; 3.498 to 3.571: 0.02370237
+;;; 3.571 to 3.644: 0.046304632
+;;; 3.644 to 3.717: 0.07560756
+;;; 3.717 to 3.790: 0.1140114
+;;; 3.790 to 3.864: 0.14571457
+;;; 3.864 to 3.937: 0.15541553
+;;; 3.937 to 4.010: 0.1491149
+;;; 4.010 to 4.083: 0.10771077
+;;; 4.083 to 4.156: 0.08320832
+;;; 4.156 to 4.229: 0.04460446
+;;; 4.229 to 4.302: 0.02460246
+;;; 4.302 to 4.375: 0.00990099
+;;; 4.375 to 4.448: 0.00370037
+;;; 4.448 to 4.522: 0.0015001501
+;;; 4.522 to 4.595: 0.00020002
+;;;
+;;; with 5 (foward backward) pairs, this distribution is nearly identical to the test-1 distribution.
+;;; What if we restrict this to just 1 (forward backward) pair (commenting out the larger action-sequence)?
+;;;
+;;; Sample output:
+;;;
+;;; Probability mass on [1.602,3.221]
 
+;;; 1.602 to 1.683: 0.000100120145
+;;; 1.683 to 1.764: 0.0
+;;; 1.764 to 1.845: 0.0
+;;; 1.845 to 1.926: 0.0006007209
+;;; 1.926 to 2.007: 0.002803364
+;;; 2.007 to 2.088: 0.0073087704
+;;; 2.088 to 2.169: 0.019122947
+;;; 2.169 to 2.250: 0.045554664
+;;; 2.250 to 2.331: 0.075390466
+;;; 2.331 to 2.412: 0.10402483
+;;; 2.412 to 2.493: 0.12174609
+;;; 2.493 to 2.574: 0.1222467
+;;; 2.574 to 2.654: 0.13035643
+;;; 2.654 to 2.735: 0.13576292
+;;; 2.735 to 2.816: 0.09911894
+;;; 2.816 to 2.897: 0.06938326
+;;; 2.897 to 2.978: 0.044353224
+;;; 2.978 to 3.059: 0.0155186225
+;;; 3.059 to 3.140: 0.0066079297
+;;; 3.140 to 3.221: 0.0
 
+;;; The distribution is now closer to (pi), but not all the way collapsed. Notably, all the probability mass lies
+;;; outside the original intervals off of just 1 (forward backward) pair . This is probably due to the  weight
+;;; function being tightly tied to the sensor measurement - the standard deviation on a sensor measurement is
+;;; roughly 0.314 radians, any state outside that range is likely to be heavily discounted during resampled.
+;;;
+;;; What if we had a sensor sequence consistent with the intervals [2 pi/3 , 3 pi/4] and [pi/2 pi/3], but an
+;;; initial belief centered around pi? That is what our third example focuses on. 
 
-;;;;;;; OUR EXAMPLE MODEL
-;;;;;;;
-;;;;;;; This simple model is discrete, to keep things simple -- but in fact
-;;;;;;; our particle filter should be able to be modified for a continuous
-;;;;;;; world fairly trivially. 
-;;;;;;;
-;;;;;;; In this model we have five rooms:  0 1 2 3 4
-;;;;;;; the rooms are organized in a torus (a loop).
-;;;;;;;
-;;;;;;; The robot can perform two actions:   :forward    and    :backward
-;;;;;;; The robot can sense two possible sensations in a room:   :even   and   :odd
-;;;;;;;
-;;;;;;; If a robot is in room x, and tries to go forward, with 1/2 probability
-;;;;;;; he will wind up in room x+1 and with 1/2 probability he will stay in room x
-;;;;;;;
-;;;;;;; If a robot is in an even room (0, 2, or 4) with 95% probability he will
-;;;;;;; sense ":even" and with 5% probability he will sense ":odd".  The opposite
-;;;;;;; occurs if he's in an odd room (1 or 3). 
-;;;;;;;
-;;;;;;; Hint: instead of directly accessing *action-model*, *sensor-model*, and *states*
-;;;;;;; in your code later on, you might use the states, action-probability, and
-;;;;;;; sensor-probability functions instead.  That way if you change your model
-;;;;;;; you just need to resubmit those three functions to
 
 ;;;;; **********
 ;;;;;; OLD MODEL
@@ -486,8 +604,33 @@ particle is simply a state."
 ;;;; For convenience:
 (defvar *b*)
 
+(defun counts-general (distribution bin-numbers)
+  "Expanding on the `counts` function to work on any list of bin-numbers."
+  (mapcar (lambda (sample) (count sample distribution)) bin-numbers))  
 
-;;; NEW TEST FUNCTIONS
+(defun make-hist (distribution min max num-bins)
+  "Returns a normalized probability distribution binned to the caller's specifications."
+  (let* ((bin-width (/ (- max min) num-bins))
+	 (bin-numbers (loop for i from 0 to (- num-bins 1) collect i))
+	 (bins (mapcar #'(lambda (number) (+ min (* number bin-width))) bin-numbers))
+	 (bag))
+    (loop for sample in distribution
+	  do
+	     (push (floor (/ (- sample min) bin-width)) bag))
+    (list (normalize (counts-general bag bin-numbers)) (nconc bins (list max)))))
+
+(defun print-hist (hist bins)
+  "Prints a histogram to the screen in a readable format."
+  (format t "~%")
+  (format t "~%")
+  (format t "Probability mass on [~,3F,~,3F]~%" (first bins) (car (last bins)))
+  (format t "~%")
+  (loop for count in hist
+	for index from 0 to (- (length bins) 2)
+	do
+	   (format t "~,3F to ~,3F: ~F~%" (elt bins index) (elt bins (+ 1 index)) count))
+  (format t "~%")
+  (format t "~%"))
 
 (defun generate-particles-on-interval (theta-min theta-max num-particles)
   "Generates a uniform distributions of particles on a provided angle interval"
@@ -496,29 +639,52 @@ particle is simply a state."
       (push (+ theta-min (random (- theta-max theta-min))) bag))
     bag))
 
-(defun get-sensor-vals (theta-real action-sequence)
-  "For some sequence of angles and a provided real start point, give a simulation of the sensor readings the robot would have."
+
+;;; NEW TEST FUNCTIONS
+
+(defun sensor-vals-example-1 (action-sequence)
+  "Give average sensor readings for the action sequence outlined in example-1-continuous"
   (let ((bag)
-	(current-theta theta-real))
+	(current-theta pi))
     (loop for action in action-sequence
-      (setf current-theta (action-result current-theta action))
-      (push (sensor-result current-theta) bag))
+	  do
+	     (if (eq action :forward) (setf current-theta (+ current-theta *forward-mean-angle*))
+		 (setf current-theta (+ current-theta *backward-mean-angle*)))
+	     (push (distance-from-wall current-theta) bag))
     (reverse bag)))
 
 
 (defun example-1-continuous ()
-  (let ((particles (generate-particles-on-interval (- pi 0.2) (+ pi 0.2) 10000))
+  "First example calculation, simulates a robot that starts opposite the wall, near theta=pi"
+  (let* ((particles (generate-particles-on-interval (- pi 0.2) (+ pi 0.2) 10000))
 	(action-sequence (list :forward :backward :forward :backward 
 			   :forward :backward :forward :backward
 			   :forward :backward))
-	(sensor-sequence (get-sensor-vals pi action-sequence))
-	(loop for action in action-sequence
-	      for sensor in sensor-sequence
-	      do
-		 (setf particles (particle-filter action sensor particles)))
-    particles)))
-	
+	(sensor-sequence (sensor-vals-example-1 action-sequence)))
+    (loop for action in action-sequence
+	  for sensor in sensor-sequence
+	  do
+	     (setf particles (particle-filter action sensor particles)))
+    (apply #'print-hist (make-hist particles (reduce #'min particles) (reduce #'max particles) 20.0))))
 
+(defun example-2-continuous ()
+  "Second example calculation, simulates a robot with a mistaken initial belief."
+  (let* ((particles (append
+		     (generate-particles-on-interval (/ (* 2 pi) 3) (/ (* 3 pi) 4) 5000)
+		     (generate-particles-on-interval (/ pi 4) (/ pi 3) 5000)))
+	 ;;;
+	;;; SAME action/senor sequence, much different initial belief	    
+;;;	 (action-sequence (list :forward :backward :forward :backward 
+;;;			       :forward :backward :forward :backward
+;;;			       :forward :backward))
+	 (action-sequence (list :forward))
+	 (sensor-sequence (sensor-vals-example-1 action-sequence)))
+    (loop for action in action-sequence
+	  for sensor in sensor-sequence
+	  do
+	     (setf particles (particle-filter action sensor particles)))
+    (apply #'print-hist (make-hist particles (reduce #'min particles) (reduce #'max particles) 20.0))))
+    
 ;;;; Example 1 : move forward through the environment,
 ;;;; then back to where you started.  You don't know where
 ;;;; you started.  Where are you likely to be?
