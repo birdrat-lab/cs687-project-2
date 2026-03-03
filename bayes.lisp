@@ -84,8 +84,8 @@
 ;;; Part 3
 ;;;
 ;;; For a new problem domain, we chose to make a continuous problem setting for the particle filter.
-;;; The goal was to extend the loop model from the discretized 5 rooms to allowing the robot to be
-;;; anywere on the loop.
+;;; The goal is to extend the loop model from the discretized rooms to a continuous parameter defining
+;;; a position anywere on the loop.
 ;;;
 ;;; To add some non-linearity, one point in the loop is blocked off by a wall. If the robot tries
 ;;; to pass through the wall, it bounces off elastically. 
@@ -109,7 +109,7 @@
 ;;;
 ;;; where epsilon is sampled from a normal distribution with known (or guessed) standard deviation.
 ;;; 
-;;; From phi, we can generate a weight function on theta to be a gaussian centered on phi.
+;;; From phi, we can generate a weight function on theta to be a gaussian centered on *both* valid phi candidates.
 ;;;
 ;;; The action model:
 ;;;
@@ -209,10 +209,10 @@
 ;;; 5.025 to 5.280: 0.00040004
 ;;; 5.280 to 5.535: 0.0
 ;;;
-;;; with 5 (foward backward) pairs, this distribution collapses peaks near 5 pi/8.
+;;; with 5 (foward backward) pairs, this distribution collapses to one gaussian with a peak near 5 pi/8.
 ;;;
-;;; Notably, nearly all he probability mass lies outside the original intervals now, that is the sensor measurements mostly destroyed
-;;; the initial belief. 
+;;; Notably, nearly all he probability mass lies outside the original intervals now, that is, the sensor measurements mostly destroyed
+;;; the initial (flawed) belief. 
 ;;;
 ;;; Third test: What if we had a sensor sequence consistent with the intervals [pi + 2 pi/3 , pi + 3 pi/4] and [pi/4, pi/3], and an
 ;;; initial belief centered around it? Do the sensor readings preserve this structture?
@@ -251,12 +251,12 @@
 ;;;
 ;;; We see two things: one the distribution closer to 2pi is collecting near the wall! This is an interesting asymmetry.
 ;;; This is because 2 forwards and 2 backwards produces a net forward motion, but the particles near the wall cannot go
-;;; through it! Thus the higher center drifts. The distribution closer to zero moves closer to the center slightly, but
-;;; has more centered tails around its peak.
+;;; through it! Thus the "higher" distribution drifts and is compressed. The distribution closer to zero moves closer to the center slightly, but
+;;; has more symettric tails. 
 ;;;
 ;;;
 ;;; Fourth test: Let's try to simulate steady state behavior! Let's assume an initial  belief uniformly distributed across
-;;; the disc. Let's say the robot tries driving forward 4 times and backwards 5 times in sucession, something like 100 times,
+;;; the ring. Let's say the robot tries driving forward 4 times and backwards 5 times in sucession, something like 100 times,
 ;;; so its net mean motion is zero.
 ;;; We'll pick an initial sensor value of pi/2 i.e. the one that gives us the least information (no wall, no distribution overlap like you get near pi)
 ;;; Instead of hardcoding the sensor simulation, sample the action probabilities to get a new position, and get a new sensor reading with error as well.
@@ -319,6 +319,8 @@
 ;;; We clearly have some symmetry breaking! That we get some collection near the wall on 2pi makes sense - particles that can bounce off the wall will tend to stay/stick there.
 ;;; What is not immediately clear is why our lower theta particles died out. We can understand this by thinking about how movement breaks the symmetry. For a particle at theta < pi - k, a forward motion of size k moves you *further* from the wall. For a particle at theta > pi, any forward motion moves it *closer* to the wall, i.e. distance decreases. Both actions *break* the distance symmetry then, which is why our distribution collapses to one side.
 
+;;; To run any of these examples, uncomment the NEW MODEL lines in the TOGGLE MODELS section and *recompile*.
+;;; then run (example-1-continuous), (example-2-continuous), etc.
 
 ;;;;; **********
 ;;;;;; OLD MODEL
@@ -646,17 +648,17 @@ given the probability distribution P(new-state | old-state, action)."
 (defun action-transition (old-state action)
   "given some theta and an action, get a new particle"
   ;;; *NEW MODEL*
-  (action-result old-state action))
+  ;;; (action-result old-state action))
   ;;; *OLD MODEL*
-  ;;; (select-from-action-probabilities old-state action))
+  (select-from-action-probabilities old-state action))
 
 (defun weight-function (state sensor)
   "given some particle and a sensor reading, determine its fitness."
 
   ;;; *NEW MODEL*
-  (list state (particle-weight state sensor)))
+  ;;; (list state (particle-weight state sensor)))
   ;;; *OLD MODEL*
-  ;;; (list state (elt (sensor-probabilities sensor) state)))
+  (list state (elt (sensor-probabilities sensor) state)))
 
 ;; Now we just do the belief update.  Note that beliefs now are different than they
 ;; were in the past: they're particles, each one representing a state.  Also note that
